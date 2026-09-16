@@ -88,7 +88,7 @@ class ElasticacheData(BaseModel):
     availability_zones: Sequence[str] = []
     replicas_per_node_group: int | None = None
     replication_group_id: str
-    security_group_ids: Sequence[str] = []
+    security_group_ids: Sequence[str]
     snapshot_retention_limit: int | None = None
     snapshot_window: str | None = None
     subnet_group_name: str = "default"

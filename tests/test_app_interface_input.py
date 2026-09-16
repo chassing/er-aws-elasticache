@@ -1,3 +1,6 @@
+import pytest
+from pydantic import ValidationError
+
 from er_aws_elasticache.app_interface_input import ElasticacheData
 
 MINIMAL_REQUIRED_FIELDS = {
@@ -8,7 +11,26 @@ MINIMAL_REQUIRED_FIELDS = {
     "engine_version": "7.2",
     "node_type": "cache.t4g.micro",
     "replication_group_id": "test-minimal",
+    "security_group_ids": ["sg-0d44ec58a69cc7d62"],
 }
+
+
+def test_security_group_ids_is_required() -> None:
+    """Regression test.
+
+    The tenant-facing schema (qontract-schemas aws/elasticache-defaults-1.yml)
+    requires security_group_ids - the pydantic model must match that
+    boundary instead of silently defaulting to [], which let a schema-valid
+    but never-really-required-in-practice omission reach a fragile direct
+    dict-index (`change.change.after["security_group_ids"]`) in
+    hooks/post_plan.py's validate().
+    """
+    fields = {
+        k: v for k, v in MINIMAL_REQUIRED_FIELDS.items() if k != "security_group_ids"
+    }
+
+    with pytest.raises(ValidationError):
+        ElasticacheData(**fields)
 
 
 def test_transit_encryption_enabled_defaults_to_false_not_none() -> None:

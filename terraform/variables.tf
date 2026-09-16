@@ -122,8 +122,7 @@ variable "reset_password" {
 }
 
 variable "security_group_ids" {
-  type    = list(string)
-  default = []
+  type = list(string)
 }
 
 variable "service_updates_cooldown_days" {
