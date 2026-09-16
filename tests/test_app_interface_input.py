@@ -47,3 +47,38 @@ def test_transit_encryption_enabled_defaults_to_false_not_none() -> None:
     data = ElasticacheData(**MINIMAL_REQUIRED_FIELDS)
 
     assert data.transit_encryption_enabled is False
+
+
+def test_number_cache_clusters_defaults_to_two_when_automatic_failover_enabled() -> (
+    None
+):
+    """Regression test.
+
+    automatic_failover_enabled defaults to True (per the tenant schema's own
+    documented default), but number_cache_clusters has no default - AWS
+    rejects CreateReplicationGroup with "InvalidParameterCombination: When
+    using automatic failover, there must be at least 2 cache clusters" the
+    moment a tenant relies on both defaults together. Found via a real
+    "required fields only" integration test run.
+    """
+    data = ElasticacheData(**MINIMAL_REQUIRED_FIELDS)
+
+    assert data.automatic_failover_enabled is True
+    assert data.number_cache_clusters == 2  # ruff: ignore[magic-value-comparison]
+
+
+def test_number_cache_clusters_not_defaulted_for_cluster_mode() -> None:
+    """Regression guard.
+
+    Cluster-mode-enabled tenants (num_node_groups set) must leave
+    number_cache_clusters unset - it's mutually exclusive with
+    num_node_groups. Real production tenants (e.g. quayio-production's
+    elasticache-builders/elasticache-modelcache) rely on exactly this:
+    automatic_failover_enabled=true, num_node_groups set,
+    number_cache_clusters omitted. Defaulting number_cache_clusters to 2
+    unconditionally would break their already-working config via the
+    number_cache_clusters_vs_num_node_groups validator.
+    """
+    data = ElasticacheData(**MINIMAL_REQUIRED_FIELDS, num_node_groups=1)
+
+    assert data.number_cache_clusters is None
