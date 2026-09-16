@@ -92,7 +92,7 @@ class ElasticacheData(BaseModel):
     snapshot_retention_limit: int | None = None
     snapshot_window: str | None = None
     subnet_group_name: str = "default"
-    transit_encryption_enabled: bool | None = None
+    transit_encryption_enabled: bool = False
     transit_encryption_mode: str | None = None
 
     @model_validator(mode="after")

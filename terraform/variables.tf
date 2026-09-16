@@ -168,7 +168,7 @@ variable "tags" {
 
 variable "transit_encryption_enabled" {
   type    = bool
-  default = null
+  default = false
 }
 
 variable "transit_encryption_mode" {
