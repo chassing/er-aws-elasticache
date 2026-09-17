@@ -17,17 +17,9 @@ steps:
     dry_run: false
     timeout_seconds: 1800
     expect:
-      exit_code: 1 # db_port output isn't available until a follow-up apply
-      log_contains:
-        - "db_port output not found"
-
-  - name: db_port output
-    input: {}
-    action: Apply
-    dry_run: false
-    timeout_seconds: 1800
-    expect:
       exit_code: 0
+      log_contains:
+        - "db_port = 6381"
 
   - name: upgrade to valkey 8.0 (new parameter group family + name)
     input:

@@ -16,6 +16,7 @@
     "snapshot_retention_limit": 2,
     "subnet_group_name": "default",
     "number_cache_clusters": 2,
+    "port": 6381,
     "identifier": "{{run_id}}",
     "parameter_group": {
       "name": "{{run_id}}-custom-pg",

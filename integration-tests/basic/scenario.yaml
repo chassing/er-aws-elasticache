@@ -12,7 +12,10 @@ description: >
   set (fixed in e2fd35f); and an omitted/empty security_group_ids reached a
   fragile direct dict-index in hooks/post_plan.py's validate() with a
   KeyError (fixed by making the field required, matching the real
-  qontract-schema, instead of defaulting to []).
+  qontract-schema, instead of defaulting to []). Also the only scenario
+  that leaves `port` unset, so it's the sole remaining coverage for the
+  omitted-port path: db_port isn't available until a follow-up apply -
+  every other scenario sets an explicit port and settles in one apply.
 base_input: integration-tests/basic/base_input.json
 steps:
   - name: create

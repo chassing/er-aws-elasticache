@@ -18,15 +18,9 @@ steps:
     dry_run: false
     timeout_seconds: 1800
     expect:
-      exit_code: 1
-
-  - name: db_port output
-    input: {}
-    action: Apply
-    dry_run: false
-    timeout_seconds: 1800
-    expect:
       exit_code: 0
+      log_contains:
+        - "db_port = 6382"
 
   - name: enable transit encryption - stages to preferred
     input:

@@ -16,18 +16,8 @@
     "snapshot_retention_limit": 2,
     "subnet_group_name": "default",
     "number_cache_clusters": 2,
+    "port": 6382,
     "identifier": "{{run_id}}",
-    "parameter_group": {
-      "name": "{{run_id}}-custom-pg",
-      "family": "valkey7",
-      "description": "erv2_itest parameter group",
-      "parameters": [
-        {
-          "name": "tcp-keepalive",
-          "value": "300"
-        }
-      ]
-    },
     "output_resource_name": "{{run_id}}",
     "output_prefix": "{{run_id}}-elasticache",
     "tags": {
@@ -44,8 +34,7 @@
         }
       }
     ],
-    "region": "us-east-1",
-    "parameter_group_name": "{{run_id}}-custom-pg"
+    "region": "us-east-1"
   },
   "provision": {
     "provision_provider": "aws",
