@@ -1,0 +1,103 @@
+# Live regression coverage for the Finding 2 bug fixed in bbc161a
+# (hooks/pre_plan.py's _next_auth_token_update_strategy): if reset_password
+# changes while a rotation is still pending (marker shows ROTATE, not yet
+# finalized), the fix must restart the cycle for the NEW password instead of
+# incorrectly finalizing with SET for a token that was never actually
+# rotated in. Unit-tested (test_reset_password_change_during_pending_rotation_restarts_cycle),
+# never live-tested until this scenario.
+name: elasticache-password-change
+description: >
+  Walk to a fully-authenticated steady state, then change reset_password
+  while the marker still shows a pending (unfinalized) rotation - the exact
+  edge case that was buggy before bbc161a.
+base_input: integration-tests/password-change/base_input.json
+steps:
+  - name: create (no encryption)
+    input: {}
+    action: Apply
+    dry_run: false
+    timeout_seconds: 1800
+    expect:
+      exit_code: 1 # db_port output isn't available until a follow-up apply
+      log_contains:
+        - "db_port output not found"
+
+  - name: db_port output
+    input: {}
+    action: Apply
+    dry_run: false
+    timeout_seconds: 1800
+    expect:
+      exit_code: 0
+
+  - name: enable transit encryption - stages to preferred
+    input:
+      transit_encryption_enabled: true
+      transit_encryption_mode: required
+      apply_immediately: true
+    action: Apply
+    dry_run: false
+    expect:
+      exit_code: 1
+      log_contains:
+        - "transit_encryption_mode_override='preferred'"
+
+  - name: preferred - required
+    input: {}
+    action: Apply
+    dry_run: false
+    expect:
+      exit_code: 1
+      log_contains:
+        - "transit_encryption_mode_override='required'"
+
+  - name: introduce auth token v1 (ROTATE)
+    input:
+      reset_password: "erv2-itest-pw-v1"
+    action: Apply
+    dry_run: false
+    timeout_seconds: 1800
+    expect:
+      exit_code: 1
+      log_contains:
+        - "auth_token_update_strategy='ROTATE'"
+
+  - name: change password to v2 before v1 is finalized (must restart ROTATE)
+    input:
+      reset_password: "erv2-itest-pw-v2"
+    action: Apply
+    dry_run: false
+    timeout_seconds: 1800
+    expect:
+      exit_code: 1
+      log_contains:
+        - "auth_token_update_strategy='ROTATE'"
+
+  - name: finalize auth token v2 (SET)
+    input: {}
+    action: Apply
+    dry_run: false
+    timeout_seconds: 1800
+    expect:
+      exit_code: 0
+      log_contains:
+        - "auth_token_update_strategy='SET'"
+
+  - name: steady state - no further changes
+    input: {}
+    action: Apply
+    dry_run: false
+    expect:
+      exit_code: 0
+      log_contains:
+        - "No changes."
+
+cleanup:
+  name: destroy
+  input: {}
+  action: Destroy
+  dry_run: false
+  expect:
+    exit_code: 0
+    log_contains:
+      - "Destroy complete!"
