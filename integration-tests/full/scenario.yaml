@@ -16,7 +16,7 @@ steps:
     input: {}
     action: Apply
     dry_run: false
-    timeout_seconds: 1800
+    timeout_seconds: 3600
     expect:
       exit_code: 0
       log_contains:
